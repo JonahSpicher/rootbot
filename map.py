@@ -54,6 +54,10 @@ def draw_map(clearings):
 
 class Clearing:
     def __init__(self, suit, connections, corner, build_slots, ruin, cat_loc, label, show_num=False):
+        """
+        EXPLAIN YOURSELF
+
+        """
         self.suit = suit
         self.connections = connections
         self.corner = corner
@@ -77,6 +81,19 @@ class Clearing:
             self.label_loc = (self.cat_loc[0]+80, self.cat_loc[1])
         else:
             self.label_loc = None
+
+    def set_rule(self):
+        cat_points = self.cat_count + self.buildings.count('W') + self.buildings.count('S') + self.buildings.count('Re')
+        bird_points = self.bird_count + self.buildings.count('Ro')
+        #print(self.buildings)
+        #print("Points:", cat_points, bird_points)
+
+        if bird_points == 0 and cat_points == 0:
+            self.rule = 0
+        elif bird_points >= cat_points:
+            self.rule = 2
+        else:
+            self.rule = 1
 
 
     def draw_contents(self):
@@ -113,9 +130,28 @@ class Clearing:
             clearing_num = troop_count_font.render(str(self.label), True, (255,255,255))
             scrn.blit(clearing_num, self.label_loc)
 
+    def add_building(self, building):
+        #Basically just add to buildings list, then reset rule
+        if len(self.buildings) < self.build_slots:
+            self.buildings.append(building)
+            self.set_rule()
+        else:
+            print("Could not build "+building+", no available slots")
+
+    def add_warrior(self, num, faction):
+        #Same idea, just add to total cat or bird count, then update rule
+        #Can be negative I guess? Both options are silly
+        if faction == 1:
+            self.cat_count += num
+        elif faction == 2:
+            self.bird_count += num
+        else:
+            print("Unknown faction "+str(faction)+", no warriors added")
+        self.set_rule()
 
 
-clearings = [Clearing('F', [1,3,4],      True, 1, False, (70,90),0),
+
+CLEARINGS = [Clearing('F', [1,3,4],      True, 1, False, (70,90),0),
              Clearing('R', [0,2],        False, 2, False, (513,58),1),
              Clearing('M', [1,4,7],      True, 2, False, (825,190),2),
              Clearing('M', [0,5,8],      False, 2, False, (65,330),3),
