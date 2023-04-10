@@ -15,20 +15,40 @@ height = map.get_height()
 width = map.get_width()
 s_factor = X/width
 map = pygame.transform.scale(map, (width*s_factor, height*s_factor))
-scrn.blit(map, (0,0))
+
 
 cat = pygame.image.load('./catlabel.png').convert_alpha()
 bird = pygame.image.load('./birdlabel.png').convert_alpha()
 wood = pygame.image.load('./wood.png').convert_alpha()
 keep = pygame.image.load('./keep.png').convert_alpha()
 slot = pygame.image.load('./slot.png').convert_alpha()
+sawmill = pygame.image.load('./sawmill.png').convert_alpha()
+workshop = pygame.image.load('./workshop.png').convert_alpha()
+recruiter = pygame.image.load('./recruiter.png').convert_alpha()
+roost = pygame.image.load('./roost.png').convert_alpha()
+ruin = pygame.image.load('./ruin.png').convert_alpha()
+
 wood = pygame.transform.scale(wood, (20, 21))
 keep = pygame.transform.scale(keep, (20, 21))
 slot = pygame.transform.scale(slot, (25,24))
+sawmill = pygame.transform.scale(sawmill, (25,24))
+workshop = pygame.transform.scale(workshop, (25,24))
+recruiter = pygame.transform.scale(recruiter, (25,24))
+roost = pygame.transform.scale(roost, (25,24))
+ruin = pygame.transform.scale(ruin, (25,24))
 
 troop_count_font = pygame.font.SysFont(None, 20)
 
+token_types = {'K':keep, 'W':wood}
+building_types = {'S':sawmill, 'W':workshop, 'Re':recruiter, 'Ro':roost, 'Ru':ruin}
 
+def draw_map(clearings):
+    scrn.fill((0,0,0))
+    scrn.blit(map, (0,0))
+    for i in range(len(clearings)):
+        clearings[i].draw_contents()
+        pygame.display.flip()
+    pygame.display.update()
 
 
 
@@ -51,7 +71,7 @@ class Clearing:
         self.birdnum_loc = (self.bird_loc[0]+21, self.bird_loc[1]+4)
         self.build_loc = (self.cat_loc[0]+45, self.cat_loc[1]-5)
         if ruin:
-            self.buildings.append('ruin')
+            self.buildings.append('Ru')
         self.label = label
         if show_num:
             self.label_loc = (self.cat_loc[0]+80, self.cat_loc[1])
@@ -64,6 +84,10 @@ class Clearing:
         slot_y = self.build_loc[1]
         for i in range(self.build_slots):
             scrn.blit(slot, (slot_x, slot_y+(20*i)))
+            if len(self.buildings) >= i+1:
+                    # print(self.buildings[i])
+                    # print(slot)
+                scrn.blit(building_types[self.buildings[i]], (slot_x, slot_y+(20*i)))
 
         if self.cat_count > 0:
             scrn.blit(cat, self.cat_loc)
@@ -75,18 +99,21 @@ class Clearing:
             num = troop_count_font.render('x'+str(self.bird_count), True, (0,0,0))
             scrn.blit(num, self.birdnum_loc)
         if len(self.tokens) > 0:
-            print(self.tokens)
+            #print(self.tokens)
             for i in range(len(self.tokens)):
-                print(i)
+                #print(i)
                 target = (self.token_loc[0]+(22*i), self.token_loc[1])
-                if self.tokens[i] == 'K':
-                    scrn.blit(keep, target)
-                if self.tokens[i] == 'W':
-                    scrn.blit(wood, target)
+                scrn.blit(token_types[self.tokens[i]], target)
+                # if self.tokens[i] == 'K':
+                #     scrn.blit(keep, target)
+                # if self.tokens[i] == 'W':
+                #     scrn.blit(wood, target)
 
         if self.label_loc != None:
             clearing_num = troop_count_font.render(str(self.label), True, (255,255,255))
             scrn.blit(clearing_num, self.label_loc)
+
+
 
 clearings = [Clearing('F', [1,3,4],      True, 1, False, (70,90),0),
              Clearing('R', [0,2],        False, 2, False, (513,58),1),
@@ -102,26 +129,28 @@ clearings = [Clearing('F', [1,3,4],      True, 1, False, (70,90),0),
              Clearing('R', [6,7,10],     True, 1, False, (790,765),11)]
 
 
+
+
+
+if __name__ == '__main__':
 #Place pieces
-# clearings[0].tokens.append('K')
-# for i in range(len(clearings)):
-#     if i%2==0:
-#         clearings[i].bird_count=i+1
-#     if i%3==0:
-#         clearings[i].cat_count=i+1
-#     if i < 5:
-#         print(i)
-#         clearings[i].tokens.append('W')
-#
+    clearings[0].tokens.append('K')
+    clearings[0].buildings.append('W')
+    clearings[1].buildings.append('Re')
+    clearings[3].buildings.append('S')
+    for i in range(len(clearings)):
+        if i%2==0:
+            clearings[i].bird_count=i+1
+            clearings[i].buildings.append('Ro')
+        if i%3==0:
+            clearings[i].cat_count=i+1
+        if i < 5:
+            clearings[i].tokens.append('W')
 
-#Draw all clearings
-for i in range(len(clearings)):
-    clearings[i].draw_contents()
-
-pygame.display.flip()
-status = True
-while(status):
-    for i in pygame.event.get():
-        if i.type == pygame.QUIT:
-            status=False
-pygame.quit()
+    status = True
+    draw_map(clearings)
+    while(status):
+        for i in pygame.event.get():
+            if i.type == pygame.QUIT:
+                status=False
+    pygame.quit()
