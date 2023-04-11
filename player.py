@@ -30,7 +30,18 @@ class Card:
 
 
     def __str__(self):
-        return self.name + '\n' + self.description
+        base = self.name + '\n' + self.description + '\n' + "suit: " + self.suit + '\n' + "Crafting Cost: "
+        if self.cost[0] > 0:
+            base += str(self.cost) + ' Foxes '
+        if self.cost[1] > 0:
+            base += str(self.cost) + ' Rabbits '
+        if self.cost[2] > 0:
+            base += str(self.cost) + ' Mice '
+        if self.cost[3] > 0:
+            base += str(self.cost) + ' of anything.'
+        if self.cost == (0,0,0,0):
+            base += "Free."
+        return base
 
 class CatPlayer:
     def __init__(self, player_num):
@@ -47,11 +58,21 @@ class CatPlayer:
 
         self.score = 0
 
+        self.phase = 0 #Track point in turn, 0 birdsong, 1 daylight, 2 evening
+        self.dstage = 0 #During daylight, keep track of current status while waiting for commands
+        self.current_action = 10
+        self.actions = 0
+        self.max_actions = 3
+
+
 
 
     ######################  PHASES ##########################
 
     def birdsong(self):
+        """
+        Very straightforward, just places a wood on each sawmill
+        """
         print("PLacing wood for birdsong...")
         total = 0
         for c in CLEARINGS:
@@ -60,21 +81,273 @@ class CatPlayer:
                 c.tokens.append('W')
         print("Placed %d wood."%total)
 
-    def daylight(self):
+
+
+    def daylight(self, command=None):
         """
         For now, this is going to accept player input. Can be modified later for bots.
-
+        First, offers crafting.
         """
+        print("Beginning daylight, dstage:", self.dstage)
+        print("Action:", self.current_action)
+        print("Command: ", command)
+        if self.dstage == 0:
+            print("Starting Daylight...")
+            print(self.hand)
+            print("Setting dstage to 1")
+            self.dstage = 1
 
-        for card in self.hand:
-            print(i, card)
-        craft_selection = input("Would you like to craft any cards? Your hand is printed above. Type no to move on, or the matching index to craft a card.\n")
-        if craft_selection == 'no':
-            print("Moving on to actions.")
+        #Crafting loop
+        if self.dstage == 1: #For crafting
 
-        else:
-            self.craft(craft_selection)
-            #Very much a work in progress but I am tired 
+            if len(self.hand)==0:
+                print("No cards available for crafting. Moving on to Actions.")
+                print("Setting dstage to 2")
+                self.dstage = 2
+                return 0
+            i = 0
+            print('\n')
+            for card in self.hand:
+                print(i, card)
+                i+=1
+            print('\n')
+            print("Would you like to craft any cards? Your hand is printed above. Type no to move on, or the matching index to craft a card.\n")
+            if command is None:
+                return 0
+            if command == 'no':
+                print("Moving on to actions.")
+                self.dstage = 2
+                return 0
+            try:
+                selected = int(command)
+                valid = True
+            except ValueError:
+                valid = False
+            if valid:
+                if selected < len(self.hand):
+                    self.craft(selected)
+                    self.dstage=0
+                    return 0
+                else:
+                    print("Not a valid card index, try again.")
+                    return 0
+            else:
+                print("Type the number printed before the card")
+                return 0
+
+
+
+
+        if self.dstage == 2 and self.actions == self.max_actions:
+            self.dstage = 6
+        if self.dstage < 6 and self.current_action < 6:
+            print("Action number ", self.actions+1)
+            print("Select your action from this list:\n0 Build\n1 Battle\n2 March\n3 Overwork\n4 Recruit\n5 Pass\n")
+
+
+        if self.dstage == 2:
+            self.dstage = 3
+            return 0
+        if self.dstage == 3:
+            choice = command
+            try:
+                self.current_action = int(choice)
+                self.dstage = 4
+            except ValueError:
+                self.current_action = 10
+
+        if self.dstage <6:
+            if self.current_action == 0: #Build - works
+                if self.dstage == 4:
+                    print("Enter clearing (0-11) and building (S for sawmill, Re for recruiter, and W for workshop) in format C,B")
+                    self.dstage = 5
+                    return 0
+                if self.dstage == 5:
+                    try:
+                        c,b = command.split(',')
+                        c = int(c)
+
+                        if c<0 or c>11 or b not in ['S', 'Re', 'W']:
+                            print("Not a valid entry.\nEnter clearing (0-11) and building (S for sawmill, Re for recruiter, and W for workshop) in format C,B")
+                            return 0
+                    except ValueError:
+                        print("Not a valid entry.\nEnter clearing (0-11) and building (S for sawmill, Re for recruiter, and W for workshop) in format C,B")
+                        return 0
+
+                    if (self.build(c, b)):
+                        self.actions += 1
+                        self.dstage = 2
+                        self.current_action = 10
+                        return 0
+                    else:
+                        print("Failed to build, try again.")
+                        self.dstage = 2
+                        self.current_action = 10
+                        return 0
+
+            elif self.current_action == 1: #Battle - works
+                if self.dstage == 4:
+                    print("Enter clearing (0-11).")
+                    self.dstage = 5
+                    return 0
+                if self.dstage == 5:
+                    try:
+                        c = int(command)
+
+                        if c<0 or c>11:
+                            print("Not a valid entry.\nEnter clearing (0-11) and building (S for sawmill, Re for recruiter, and W for workshop) in format C,B")
+                            return 0
+                    except ValueError:
+                        print("Not a valid entry.\nEnter clearing (0-11) and building (S for sawmill, Re for recruiter, and W for workshop) in format C,B")
+                        return 0
+
+                    if (self.battle(c)):
+                        self.actions += 1
+                        self.dstage = 2
+                        self.current_action = 10
+                        return 0
+                    else:
+                        print("Failed to battle, try again.")
+                        self.dstage = 2
+                        self.current_action = 10
+                        return 0
+
+            elif self.current_action == 2: #March - works
+                if self.dstage == 4:
+                    print("Enter clearings (0-11) and troop count for two moves, in format c1,c2,num1,c3,c4,num2 (moving num1 troops from c1->c2, then num2 troops from c3->c4).")
+                    self.dstage = 5
+                    return 0
+                if self.dstage == 5:
+                    try:
+                        c1,c2,num1,c3,c4,num2 = command.split(',')
+                        c1 = int(c1)
+                        c2 = int(c2)
+                        num1 = int(num1)
+                        c3 = int(c3)
+                        c4 = int(c4)
+                        num2 = int(num2)
+
+                        if c1<0 or c1>11 or c2<0 or c2>11 or c3<0 or c3>11 or c4<0 or c4>11:
+                            print("Not a valid entry.")
+                            print("Enter clearings (0-11) and troop count for two moves, in format c1,c2,num1,c3,c4,num2 (moving num1 troops from c1->c2, then num2 troops from c3->c4).")
+
+                            return 0
+                    except ValueError:
+                        print("Not a valid entry.")
+                        print("Enter clearings (0-11) and troop count for two moves, in format c1,c2,num1,c3,c4,num2 (moving num1 troops from c1->c2, then num2 troops from c3->c4).")
+
+                        return 0
+
+                    if (self.march((c1,c2,num1),(c3,c4,num2))):
+                        self.actions += 1
+                        self.dstage = 2
+                        self.current_action = 10
+                        return 0
+                    else:
+                        print("Failed to march, try again.")
+                        self.dstage = 2
+                        self.current_action = 10
+                        return 0
+
+            elif self.current_action == 3: #Overwork
+                if self.dstage == 4:
+                    i = 0
+                    print('\n')
+                    for card in self.hand:
+                        print(i, card)
+                        i+=1
+
+                    print("Enter clearing (0-11) and card to discard (index in hand of card with matching suit) in format c,card.")
+                    self.dstage = 5
+                    return 0
+                if self.dstage == 5:
+                    try:
+                        c, card = command.split(',')
+                        c = int(c)
+                        card = int(card)
+
+                        if c<0 or c>11 or card<0 or card>len(self.hand):
+                            print("Not a valid entry.\nEnter clearing (0-11) and building (S for sawmill, Re for recruiter, and W for workshop) in format C,B")
+                            return 0
+                    except ValueError:
+                        print("Not a valid entry.\nEnter clearing (0-11) and building (S for sawmill, Re for recruiter, and W for workshop) in format C,B")
+                        return 0
+
+                    if (self.overwork(c, card)):
+                        self.actions += 1
+                        self.dstage = 2
+                        self.current_action = 10
+                        return 0
+                    else:
+                        print("Failed to overwork, try again.")
+                        self.dstage = 2
+                        self.current_action = 10
+                        return 0
+
+            elif self.current_action == 4: #Recruit
+                if self.recruit():
+                    self.actions += 1
+                    self.dstage = 2
+                    self.current_action = 10
+                else:
+                    print("Failed to recruit, try again")
+                    self.dstage=2
+                    self.current_action=10
+                    return 0
+            elif self.current_action == 5:
+                self.actions=3
+            else:
+                print("Enter a number from 0 through 5 to select an action.")
+
+
+        #####BIRDS
+        if self.dstage == 6:
+            num_birds = 0
+            bird_indexes = []
+            for i in range(len(self.hand)):
+                c = self.hand[i]
+                if c.suit == 'B':
+                    num_birds += 1
+                    bird_indexes.append(i)
+            if num_birds > 0:
+                print("Would you like to spend a bird card to take an extra action?")
+                print("Available bird cards:")
+                for i in bird_indexes:
+                    print(i, self.hand[i].name)
+                print("\nEnter the number to the left of the card to spend, or \"no\" to skip.")
+                self.dstage = 7
+                return 0
+            else:
+                print("Hired mercenaries not available, ending daylight")
+                self.phase = 2
+                self.dstage = 0
+                self.current_action = 10
+                self.max_actions = 3
+                return 0
+
+        if self.dstage == 7:
+            if command=='no':
+                #Actually exit, end daylight
+                print("Ending daylight")
+                self.phase = 2
+                self.dstage = 0
+                self.current_action = 10
+                self.max_actions = 3
+                return 0
+            try:
+                selected = int(command)
+
+            except ValueError:
+                print("Invalid entry, enter the number associated with a bird card, or enter no to cancel.")
+                return 0
+            if selected < len(self.hand) and self.hand[selected].suit == 'B':
+                #Successfully played a bird card!
+                del self.hand[selected] #Discard the bird card, will later go into the discard pile
+                self.max_actions += 1
+                self.dstage = 2
+            else:
+                print("Entry does not match bird card, enter the number associated with a bird card, or enter no to cancel.")
+                return 0
 
 
 
@@ -83,9 +356,6 @@ class CatPlayer:
 
 
     ######################  ACTIONS  ##########################
-
-
-
 
 
 
@@ -117,12 +387,15 @@ class CatPlayer:
                 #In the cats case, the only thing that could be left to attack is a roost
                 if 'Ro' in c.buildings:
                     c.buildings.remove('Ro')
+                    print("Destroyed Roost! Scored one point")
+                    self.score +=1
             if bird_hits <= c.cat_count:
                 c.add_warrior(-1*bird_hits, 1)
             else: #here we go
                 remainder = bird_hits - c.cat_count
                 c.add_warrior(-1*c.cat_count, 1)
                 for i in range(remainder):
+                    #Fix: eventually birds should score points here
                     if 'W' in c.tokens:
                         c.tokens.remove('W')
                     elif 'S' in c.buildings:
@@ -144,8 +417,6 @@ class CatPlayer:
         else:
             print("Both sides must be present to battle")
             return False
-
-
 
     def recruit(self):
         #ACTION
@@ -170,7 +441,6 @@ class CatPlayer:
             print("Cannot make move, not enough warriors present")
         return False
 
-
     def march(self, m1, m2):
         #ACTION
         r1 = self.move(*m1)
@@ -189,7 +459,7 @@ class CatPlayer:
                 self.building_score(building)
                 CLEARINGS[clearing].add_building(building)
                 if building == 'W':
-                    self.workshop_suits[CLEARINGS[clearing.suit]]+= 1
+                    self.workshop_suits[CLEARINGS[clearing].suit]+= 1
                 return True
             else:
                 print("Not enough wood for "+building+" in clearing "+str(clearing))
@@ -198,15 +468,14 @@ class CatPlayer:
             print("(Or you dont rule it lol)")
         return False
 
-
     def overwork(self, clearing, card):
         # ACTION
         c = CLEARINGS[clearing]
-        if self.cards[card].suit != c.suit and self.cards[card].suit != 'B':
+        if self.hand[card].suit != c.suit and self.hand[card].suit != 'B':
             print("Card suit must match clearing")
             return False
         c.tokens.append('W')
-        del self.cards[card] #When discard pile is necessary, fix this
+        del self.hand[card] #When discard pile is necessary, fix this
         return True
 
 
@@ -218,6 +487,11 @@ class CatPlayer:
         """
         Basically just make sure that the cost is covered by workshops and then boom
         """
+        # check that cost is paid
+        print("Oh yes definitely crafting this card:")
+        print(self.hand[card])
+        del self.hand[card]
+        # if yes, activate card effect and then discard
         return True
 
 
@@ -311,7 +585,10 @@ class CatPlayer:
 
 
 if __name__ == '__main__':
-#For testing
+    #All setup For testing
+    cards = [Card('F', (0,0,0,0), 'Oh no! An Ambush Card', 'Ambush!'),
+    Card('R', (0,2,0,0), 'Something about two people getting cards.', 'Better Burrow Bank'),
+    Card('B', (1,0,0,0), "You get like an extra hit or something?", 'Sappers')]
 
     # CLEARINGS[0].add_building('W')
     # CLEARINGS[1].add_building('Re')
@@ -327,24 +604,95 @@ if __name__ == '__main__':
             CLEARINGS[i].tokens.append('W')
 
     marquise = CatPlayer(1)
+    marquise.hand = cards
     CLEARINGS[0].tokens.append('K')
-    marquise.build(0, 'W')
-    marquise.build(1, 'Re')
-    marquise.build(3, 'S')
+    # marquise.build(0, 'W')
+    # marquise.build(1, 'Re')
+    # marquise.build(3, 'S')
+    #
+    # marquise.build(7, 'S')
+    # marquise.build(3, 'Re')
+    # marquise.recruit()
+    # marquise.march((1,2,2),(10,11,1))
+    #
+    # marquise.battle(2)
 
-    marquise.build(7, 'S')
-    marquise.build(3, 'Re')
-    marquise.recruit()
-    marquise.march((1,2,2),(10,11,1))
 
-    marquise.battle(2)
+
+    #### Actual pygame code
+    input_ready = False
+    usr_txt = ''
+    command = ''
+    input_font = pygame.font.SysFont(None, 30)
+    txt_surface = input_font.render("Input: "+usr_txt, True, (255,255,255))
+
+    draw_map(CLEARINGS)
+    scrn.blit(txt_surface, (50,850))
+    pygame.display.flip()
+    pygame.display.update()
+    #marquise.birdsong()
+    #marquise.daylight()
     status = True
 
 
 
-    draw_map(CLEARINGS)
+
+
+
+
     while(status):
         for i in pygame.event.get():
             if i.type == pygame.QUIT:
                 status=False
+            if i.type == pygame.KEYDOWN:
+                if i.key == pygame.K_BACKSPACE:
+                    usr_txt = usr_txt[:-1]
+                    draw_map(CLEARINGS)
+                elif i.key == pygame.K_RETURN:
+                    input_ready = True
+                    command = usr_txt
+                    usr_txt = ''
+                    draw_map(CLEARINGS)
+
+                else:
+                    usr_txt += i.unicode
+                txt_surface = input_font.render("Input: "+usr_txt, True, (255,255,255))
+                #print(usr_txt)
+
+                #draw_map(CLEARINGS)
+                scrn.blit(txt_surface, (50,850))
+                pygame.display.flip()
+                pygame.display.update()
+
+        if marquise.phase == 0:
+            marquise.birdsong()
+            draw_map(CLEARINGS)
+            scrn.blit(txt_surface, (50,850))
+            pygame.display.flip()
+            pygame.display.update()
+            marquise.phase = 1
+
+        if marquise.phase == 1:
+            if marquise.dstage ==  0 or marquise.dstage == 2 or marquise.dstage == 4:
+                marquise.daylight()
+                draw_map(CLEARINGS)
+                scrn.blit(txt_surface, (50,850))
+                pygame.display.flip()
+                pygame.display.update()
+
+
+        if input_ready:
+            input_ready = False
+            marquise.daylight(command)
+            draw_map(CLEARINGS)
+            scrn.blit(txt_surface, (50,850))
+            pygame.display.flip()
+            pygame.display.update()
+
+
+
+
+
+
+
     pygame.quit()
