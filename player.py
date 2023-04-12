@@ -1,4 +1,5 @@
 from map import *
+from cards import Card, Deck
 import random
 """
 Things to add:
@@ -11,40 +12,11 @@ Things to add:
 
 Known bugs:
 - daylight prints weird
-
+- One time when I did an action wrong the whole thing crashed it was weird
+- Crafting cost display broken
+- Hired birds not discarding
 
 """
-
-class Card:
-    """
-    A card consists of a suit (F, R, M, or B), a cost (a tuple where the first term
-    is number of foxes, second rabbits, 3rd mice, and 4th any), a description (the
-    actual text of the card) and a name (how the code stores it and knows what to do
-    with it)
-    """
-    def __init__(self, suit, cost, description, name):
-        self.suit = suit
-        self.cost = cost
-        self.description = description
-        self.name = name
-
-    def __repr__(self):
-        return self.name
-
-
-    def __str__(self):
-        base = self.name + '\n' + self.description + '\n' + "suit: " + self.suit + '\n' + "Crafting Cost: "
-        if self.cost[0] > 0:
-            base += str(self.cost) + ' Foxes '
-        if self.cost[1] > 0:
-            base += str(self.cost) + ' Rabbits '
-        if self.cost[2] > 0:
-            base += str(self.cost) + ' Mice '
-        if self.cost[3] > 0:
-            base += str(self.cost) + ' of anything.'
-        if self.cost == (0,0,0,0):
-            base += "Free."
-        return base
 
 class CatPlayer:
     def __init__(self, player_num):
@@ -76,13 +48,14 @@ class CatPlayer:
         """
         Very straightforward, just places a wood on each sawmill
         """
-        print("PLacing wood for birdsong...")
+        print("Placing wood for birdsong...")
         total = 0
         for c in CLEARINGS:
             if 'S' in c.buildings:
                 total += 1
                 c.tokens.append('W')
         print("Placed %d wood."%total)
+        print("Currently have %d points."%self.score)
 
 
 
@@ -96,7 +69,7 @@ class CatPlayer:
         # print("Command: ", command)
         if self.dstage == 0:
             print("Starting Daylight...")
-            print(self.hand)
+            #print(self.hand)
             #print("Setting dstage to 1")
             self.dstage = 1
 
@@ -162,6 +135,9 @@ class CatPlayer:
         if self.dstage <6:
             if self.current_action == 0: #Build - works
                 if self.dstage == 4:
+                    print("Sawmill Cost: ", self.costs[self.building_nums['S']])
+                    print("Workshop Cost: ", self.costs[self.building_nums['W']])
+                    print("Recruiter Cost: ", self.costs[self.building_nums['Re']])
                     print("Enter clearing (0-11) and building (S for sawmill, Re for recruiter, and W for workshop) in format C,B")
                     self.dstage = 5
                     return 0
@@ -281,6 +257,7 @@ class CatPlayer:
                         self.actions += 1
                         self.dstage = 2
                         self.current_action = 10
+                        print("Placed wood in clearing %d"%c)
                         return 0
                     else:
                         print("Failed to overwork, try again.")
@@ -288,18 +265,22 @@ class CatPlayer:
                         self.current_action = 10
                         return 0
 
-            elif self.current_action == 4: #Recruit
+            elif self.current_action == 4: #Recruit - works
                 if self.recruit():
                     self.actions += 1
                     self.dstage = 2
                     self.current_action = 10
+                    print("Troops placed.")
                 else:
                     print("Failed to recruit, try again")
                     self.dstage=2
                     self.current_action=10
                     return 0
-            elif self.current_action == 5:
+            elif self.current_action == 5: #Pass
                 self.actions=self.max_actions
+                self.dstage=2
+                self.current_action = 0
+                print("Skipping daylight")
             else:
                 print("Enter a number from 0 through 5 to select an action.")
 
@@ -327,6 +308,7 @@ class CatPlayer:
                 self.dstage = 0
                 self.current_action = 10
                 self.max_actions = 3
+                self.actions = 0
                 return 0
 
         if self.dstage == 7:
@@ -337,6 +319,7 @@ class CatPlayer:
                 self.dstage = 0
                 self.current_action = 10
                 self.max_actions = 3
+                self.actions = 0
                 return 0
             try:
                 selected = int(command)
@@ -353,6 +336,56 @@ class CatPlayer:
                 print("Entry does not match bird card, enter the number associated with a bird card, or enter no to cancel.")
                 return 0
 
+    def evening(self, command=None):
+        #print("EVENING START")
+        if self.dstage == 0:
+            num_cards = 1 + self.building_nums['Re']//2 #Number of cards to draw
+            self.draw(num_cards)
+            if len(self.hand) <= 5:
+                print("Evening ended, end of turn.")
+                print("Currently have %d points."%self.score)
+                self.phase = 0
+                self.dstage = 0
+            else:
+                print('\n')
+                i = 0
+                for card in self.hand: #Why is this like this ahhhh
+                    print(i, card)
+                    i+=1
+                print('\n')
+                print("Need to discard cards. Select card to discard from above hand.")
+                self.dstage = 1
+                return 0
+        else: #Should only be possible with a command? I hope so
+            try:
+                c = int(command)
+                if c <0 or c >= len(self.hand):
+                    print("Enter the index of the card to discard.")
+                    return 0
+            except ValueError:
+                print("Enter the index of the card to discard.")
+                return 0
+
+            #Now discard
+            card = self.hand[c]
+            DISCARD.cards.append(card)
+            print("Successfully discarded", card)
+            del self.hand[c]
+            if len(self.hand) <= 5:
+                print("Evening ended, end of turn.")
+                print("Currently have %d points."%self.score)
+                self.phase = 0
+                self.dstage = 0
+            else:
+                print('\n')
+                i = 0
+                for card in self.hand:
+                    print(i, card)
+                    i+=1
+                print('\n')
+                "Need to discard cards. Select card to discard from above hand."
+                self.dstage = 1
+                return 0
 
 
 
@@ -436,9 +469,16 @@ class CatPlayer:
     def move(self, c1, c2, num):
         if num <= CLEARINGS[c1].cat_count:
             if CLEARINGS[c1].rule == self.player_num or CLEARINGS[c2].rule == self.player_num:
-                CLEARINGS[c1].add_warrior(-1*max(0,num), 1)
-                CLEARINGS[c2].add_warrior(max(0,num),1)
-                return True
+
+                if c2 in CLEARINGS[c1].connections:
+
+                    CLEARINGS[c1].add_warrior(-1*max(0,num), 1)
+                    CLEARINGS[c2].add_warrior(max(0,num),1)
+                    return True
+
+                else:
+                    print("Cannot make move, clearings not connected")
+
             else:
                 print("Cannot make move, rule conditions not met")
         else:
@@ -582,6 +622,12 @@ class CatPlayer:
             self.building_nums['S']+=1
             print("Built sawmill for "+str(points)+" points")
 
+    def draw(self, n):
+        #Just taken the top n cards from the deck
+        for i in range(n):
+            self.hand.append(DECK.draw())
+        print(self.hand)
+
 
 
 
@@ -590,36 +636,26 @@ class CatPlayer:
 
 if __name__ == '__main__':
     #All setup For testing
-    cards = [Card('F', (0,0,0,0), 'Oh no! An Ambush Card', 'Ambush!'),
-    Card('R', (0,2,0,0), 'Something about two people getting cards.', 'Better Burrow Bank'),
-    Card('B', (1,0,0,0), "You get like an extra hit or something?", 'Sappers')]
+    cards = ([Card('F',(1,0,0,0),'Generic Fox Card.', 'Fox')]*12)+([Card('R',(0,1,0,0),'Generic Rabbit Card.', 'Rabbit')]*12)+([Card('M',(0,0,1,0),'Generic Mouse Card.', 'Mouse')]*12)+([Card('B',(0,0,0,1),'Generic Bird Card.', 'Bird')]*12)
+    DECK = Deck(cards)
+    DISCARD = Deck([])
 
-    CLEARINGS[0].add_building('W')
-    CLEARINGS[1].add_building('Re')
-    CLEARINGS[3].add_building('S')
+
     #CLEARINGS[6].add_warrior(1, 1)
     for i in range(len(CLEARINGS)):
         if i%2==0 and i!=0:
             CLEARINGS[i].add_warrior(i+1, 2)
-            CLEARINGS[i].add_building('Ro')
+            CLEARINGS[i].add_building('Ro') #Random bird nonsense
         if i!=11:
-            CLEARINGS[i].add_warrior(1, 1)
-        if i < 5:
-            CLEARINGS[i].tokens.append('W')
+            CLEARINGS[i].add_warrior(1, 1) #Place initial cats
 
     marquise = CatPlayer(1)
-    marquise.hand = cards
+    marquise.build(0, 'S')
+    marquise.build(1, 'Re')
+    marquise.build(3,'W')
     CLEARINGS[0].tokens.append('K')
-    # marquise.build(0, 'W')
-    # marquise.build(1, 'Re')
-    # marquise.build(3, 'S')
-    #
-    # marquise.build(7, 'S')
-    # marquise.build(3, 'Re')
-    # marquise.recruit()
-    # marquise.march((1,2,2),(10,11,1))
-    #
-    # marquise.battle(2)
+    marquise.hand = [DECK.draw(), DECK.draw(), DECK.draw()]
+    print(marquise.hand)
 
 
 
@@ -634,8 +670,7 @@ if __name__ == '__main__':
     scrn.blit(txt_surface, (50,850))
     pygame.display.flip()
     pygame.display.update()
-    #marquise.birdsong()
-    #marquise.daylight()
+
     status = True
 
 
@@ -668,6 +703,10 @@ if __name__ == '__main__':
                 pygame.display.flip()
                 pygame.display.update()
 
+        if marquise.score >= 30:
+            print("You win!")
+            break
+
         if marquise.phase == 0:
             marquise.birdsong()
             draw_map(CLEARINGS)
@@ -684,10 +723,17 @@ if __name__ == '__main__':
                 pygame.display.flip()
                 pygame.display.update()
 
+        if marquise.phase == 2:
+            if marquise.dstage == 0:
+                marquise.evening()
+
 
         if input_ready:
             input_ready = False
-            marquise.daylight(command)
+            if marquise.phase == 1:
+                marquise.daylight(command)
+            elif marquise.phase == 2:
+                marquise.evening(command)
             draw_map(CLEARINGS)
             scrn.blit(txt_surface, (50,850))
             pygame.display.flip()
