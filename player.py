@@ -3,11 +3,14 @@ import random
 """
 Things to add:
 - crafting
-- taking actions during daylight, bird cards to take more
 - cards that just do points, items
 - ambush cards
 - more complicated cards
 - Field Hospitals???
+- The draw and discard pile
+
+Known bugs:
+- daylight prints weird
 
 
 """
@@ -88,13 +91,13 @@ class CatPlayer:
         For now, this is going to accept player input. Can be modified later for bots.
         First, offers crafting.
         """
-        print("Beginning daylight, dstage:", self.dstage)
-        print("Action:", self.current_action)
-        print("Command: ", command)
+        # print("Beginning daylight, dstage:", self.dstage)
+        # print("Action:", self.current_action)
+        # print("Command: ", command)
         if self.dstage == 0:
             print("Starting Daylight...")
             print(self.hand)
-            print("Setting dstage to 1")
+            #print("Setting dstage to 1")
             self.dstage = 1
 
         #Crafting loop
@@ -140,7 +143,7 @@ class CatPlayer:
 
         if self.dstage == 2 and self.actions == self.max_actions:
             self.dstage = 6
-        if self.dstage < 6 and self.current_action < 6:
+        if self.dstage < 6:
             print("Action number ", self.actions+1)
             print("Select your action from this list:\n0 Build\n1 Battle\n2 March\n3 Overwork\n4 Recruit\n5 Pass\n")
 
@@ -256,6 +259,7 @@ class CatPlayer:
                     for card in self.hand:
                         print(i, card)
                         i+=1
+                    print('\n')
 
                     print("Enter clearing (0-11) and card to discard (index in hand of card with matching suit) in format c,card.")
                     self.dstage = 5
@@ -295,7 +299,7 @@ class CatPlayer:
                     self.current_action=10
                     return 0
             elif self.current_action == 5:
-                self.actions=3
+                self.actions=self.max_actions
             else:
                 print("Enter a number from 0 through 5 to select an action.")
 
@@ -590,9 +594,9 @@ if __name__ == '__main__':
     Card('R', (0,2,0,0), 'Something about two people getting cards.', 'Better Burrow Bank'),
     Card('B', (1,0,0,0), "You get like an extra hit or something?", 'Sappers')]
 
-    # CLEARINGS[0].add_building('W')
-    # CLEARINGS[1].add_building('Re')
-    # CLEARINGS[3].add_building('S')
+    CLEARINGS[0].add_building('W')
+    CLEARINGS[1].add_building('Re')
+    CLEARINGS[3].add_building('S')
     #CLEARINGS[6].add_warrior(1, 1)
     for i in range(len(CLEARINGS)):
         if i%2==0 and i!=0:

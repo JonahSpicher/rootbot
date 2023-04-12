@@ -53,7 +53,7 @@ def draw_map(clearings):
 
 
 class Clearing:
-    def __init__(self, suit, connections, corner, build_slots, ruin, cat_loc, label, show_num=False):
+    def __init__(self, suit, connections, corner, build_slots, ruin, cat_loc, label, show_num=True):
         """
         EXPLAIN YOURSELF
 
@@ -170,21 +170,21 @@ CLEARINGS = [Clearing('F', [1,3,4],      True, 1, False, (70,90),0),
 
 if __name__ == '__main__':
 #Place pieces
-    clearings[0].tokens.append('K')
-    clearings[0].buildings.append('W')
-    clearings[1].buildings.append('Re')
-    clearings[3].buildings.append('S')
-    for i in range(len(clearings)):
-        if i%2==0:
-            clearings[i].bird_count=i+1
-            clearings[i].buildings.append('Ro')
-        if i%3==0:
-            clearings[i].cat_count=i+1
-        if i < 5:
-            clearings[i].tokens.append('W')
+    # CLEARINGS[0].tokens.append('K')
+    # CLEARINGS[0].buildings.append('W')
+    # CLEARINGS[1].buildings.append('Re')
+    # CLEARINGS[3].buildings.append('S')
+    # for i in range(len(CLEARINGS)):
+    #     if i%2==0:
+    #         CLEARINGS[i].bird_count=i+1
+    #         CLEARINGS[i].buildings.append('Ro')
+    #     if i%3==0:
+    #         CLEARINGS[i].cat_count=i+1
+    #     if i < 5:
+    #         CLEARINGS[i].tokens.append('W')
 
     status = True
-    draw_map(clearings)
+    draw_map(CLEARINGS)
     while(status):
         for i in pygame.event.get():
             if i.type == pygame.QUIT:
