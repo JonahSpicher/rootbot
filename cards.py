@@ -21,13 +21,13 @@ class Card:
     def __str__(self):
         base = self.name + '\n' + self.description + '\n' + "suit: " + self.suit + '\n' + "Crafting Cost: "
         if self.cost[0] > 0:
-            base += str(self.cost) + ' Foxes '
+            base += str(self.cost[0]) + ' Foxes '
         if self.cost[1] > 0:
-            base += str(self.cost) + ' Rabbits '
+            base += str(self.cost[1]) + ' Rabbits '
         if self.cost[2] > 0:
-            base += str(self.cost) + ' Mice '
+            base += str(self.cost[2]) + ' Mice '
         if self.cost[3] > 0:
-            base += str(self.cost) + ' of anything.'
+            base += str(self.cost[3]) + ' of anything.'
         if self.cost == (0,0,0,0):
             base += "Free."
         return base
@@ -59,3 +59,4 @@ class Deck:
 
 if __name__ == '__main__':
     pass
+    print("this is a test")

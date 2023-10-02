@@ -13,7 +13,6 @@ Things to add:
 Known bugs:
 - daylight prints weird
 - One time when I did an action wrong the whole thing crashed it was weird
-- Crafting cost display broken
 - Hired birds not discarding
 
 """
