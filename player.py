@@ -17,6 +17,8 @@ Known bugs:
 
 """
 
+
+
 class CatPlayer:
     def __init__(self, player_num):
         self.hand = []
@@ -627,24 +629,36 @@ class CatPlayer:
             self.hand.append(DECK.draw())
         print(self.hand)
 
+"""
+Ugh, players need set of crafted cards.
+Permanent effects:
+    Battle:
+        Scouting Party - As attacker in battle, you are not affected by ambush cards.
+        Armorers - In battle, may discard this to ignore all rolled hits taken.
+        Brutal Tactics - deal an extra hit as attacker, gives opponent 1 point.
+        Sappers - as defender, discard to deal an extra hit
+    Birdsong:
+        Better Burrow Bank - At start of Birdsong, you and another player draw a card
+        Stand and deliver - take a random card from another player in birdsong, they score one point
+        Royal Claim - discard to score one point per ruled clearing
+    Daylight:
+        Codebreakers - once in daylight look at another players hand
+        Tax Collector - Once in Daylight, may remove one of your warriors from the map to draw a card.
+        Command Warren - At start of daylight, may initiate a battle.
+    Evening:
+        Cobbler - At start of evening, may take a move
 
 
-
-
-
+"""
 
 if __name__ == '__main__':
     #All setup For testing
-    cards = ([Card('F',(1,0,0,0),'Generic Fox Card.', 'Fox')]*12)+([Card('R',(0,1,0,0),'Generic Rabbit Card.', 'Rabbit')]*12)+([Card('M',(0,0,1,0),'Generic Mouse Card.', 'Mouse')]*12)+([Card('B',(0,0,0,1),'Generic Bird Card.', 'Bird')]*12)
-    DECK = Deck(cards)
-    DISCARD = Deck([])
-
 
     #CLEARINGS[6].add_warrior(1, 1)
     for i in range(len(CLEARINGS)):
         if i%2==0 and i!=0:
             CLEARINGS[i].add_warrior(i+1, 2)
-            CLEARINGS[i].add_building('Ro') #Random bird nonsense
+            CLEARINGS[i].add_building('Ro') #Random bird nonsense for testing
         if i!=11:
             CLEARINGS[i].add_warrior(1, 1) #Place initial cats
 
