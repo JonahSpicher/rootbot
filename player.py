@@ -1,21 +1,7 @@
 from map import *
-from cards import Card, Deck
+from cards import *
 import random
-"""
-Things to add:
-- crafting
-- cards that just do points, items
-- ambush cards
-- more complicated cards
-- Field Hospitals???
-- The draw and discard pile
 
-Known bugs:
-- daylight prints weird
-- One time when I did an action wrong the whole thing crashed it was weird
-- Hired birds not discarding
-
-"""
 
 
 
@@ -76,7 +62,6 @@ class CatPlayer:
 
         #Crafting loop
         if self.dstage == 1: #For crafting
-
             if len(self.hand)==0:
                 print("No cards available for crafting. Moving on to Actions.")
                 print("Setting dstage to 2")
@@ -629,27 +614,7 @@ class CatPlayer:
             self.hand.append(DECK.draw())
         print(self.hand)
 
-"""
-Ugh, players need set of crafted cards.
-Permanent effects:
-    Battle:
-        Scouting Party - As attacker in battle, you are not affected by ambush cards.
-        Armorers - In battle, may discard this to ignore all rolled hits taken.
-        Brutal Tactics - deal an extra hit as attacker, gives opponent 1 point.
-        Sappers - as defender, discard to deal an extra hit
-    Birdsong:
-        Better Burrow Bank - At start of Birdsong, you and another player draw a card
-        Stand and deliver - take a random card from another player in birdsong, they score one point
-        Royal Claim - discard to score one point per ruled clearing
-    Daylight:
-        Codebreakers - once in daylight look at another players hand
-        Tax Collector - Once in Daylight, may remove one of your warriors from the map to draw a card.
-        Command Warren - At start of daylight, may initiate a battle.
-    Evening:
-        Cobbler - At start of evening, may take a move
 
-
-"""
 
 if __name__ == '__main__':
     #All setup For testing
@@ -709,7 +674,6 @@ if __name__ == '__main__':
                 else:
                     usr_txt += i.unicode
                 txt_surface = input_font.render("Input: "+usr_txt, True, (255,255,255))
-                #print(usr_txt)
 
                 #draw_map(CLEARINGS)
                 scrn.blit(txt_surface, (50,850))

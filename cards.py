@@ -67,9 +67,9 @@ cards+= [Card('M',(0,0,1,0),"Gain a Sack and 1 VP, then discard.","Mouse-in-a-Sa
 cards+= [Card('B',(0,0,1,0),"Gain a Sack and 1 VP, then discard.","Birdy Bindle")]*1
 cards+= [Card('F',(0,0,1,0),"Gain a Sack and 1 VP, then discard.","Gently Used Knapsack")]*1
 cards+= [Card('R',(0,0,1,0),"Gain a Sack and 1 VP, then discard.","Smuggler\'s Trail")]*1
-cards+= [Card('R',(0,0,1,0),"Gain a Tea and 2 VP, then discard.","Root Tea"]*1
-cards+= [Card('F',(0,0,1,0),"Gain a Tea and 2 VP, then discard.","Root Tea"]*1
-cards+= [Card('M',(0,0,1,0),"Gain a Tea and 2 VP, then discard.","Root Tea"]*1
+cards+= [Card('R',(0,0,1,0),"Gain a Tea and 2 VP, then discard.","Root Tea")]*1
+cards+= [Card('F',(0,0,1,0),"Gain a Tea and 2 VP, then discard.","Root Tea")]*1
+cards+= [Card('M',(0,0,1,0),"Gain a Tea and 2 VP, then discard.","Root Tea")]*1
 cards+= [Card('F',(2,0,0,0),"Gain a Sword and 2 VP, then discard.","Foxfolk Steel")]*1
 cards+= [Card('M',(2,0,0,0),"Gain a Sword and 2 VP, then discard.","Sword")]*1
 cards+= [Card('B',(2,0,0,0),"Gain a Sword and 2 VP, then discard.","Arms Trader")]*1
@@ -91,7 +91,7 @@ cards+= [Card('R',(0,3,0,0),"Remove all enemy pieces in Rabbit clearings, then d
 cards+= [Card('M',(0,0,3,0),"Remove all enemy pieces in Mouse clearings, then discard.","Favor of the Mice")]*1
 
 cards+= [Card('M',(0,0,2,0),"As attacker in battle, you are not affected by ambush cards.","Scouting Party")]*2
-cards+= [Card('B',(1,0,0,0),"In battle, may discard this to ignore all rolled hits taken.","Armorers"]*2
+cards+= [Card('B',(1,0,0,0),"In battle, may discard this to ignore all rolled hits taken.","Armorers")]*2
 cards+= [Card('B',(2,0,0,0),"In battle as attacker, may deal an extra hit, but defender scores one point.","Brutal Tactics")]*2
 cards+= [Card('B',(0,0,1,0),"In battle as defender, may discard this to deal an extra hit.","Sappers")]*2
 
