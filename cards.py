@@ -56,8 +56,27 @@ class Deck:
         #Just print the whole deck
         return str(self.cards)
 
-cards = [Card('M',(0,1,0,0),"Gain a Boot and 1 VP, then discard.",'Travel Gear')]*1
-cards = [Card('F',(1,0,0,0),"Gain a Boot and 1 VP, then discard.",'Travel Gear')]*1
+CRAFT_POINTS = {"Travel Gear":1,"A Visit to Friends":1,"Woodland Runners":1,"Protection Racket":3,
+                "Bake Sale":3,"Investments":3,"Mouse-in-a-Sack":1,"Birdy Bindle":1,
+                "Gently Used Knapsack":1,"Smuggler\'s Trail":1,"Root Tea":2,"Foxfolk Steel":2,
+                "Sword":2,"Arms Trader":2,"Crossbow":1,"Anvil":2}
+CRAFT_ITEMS = {"Travel Gear":"Boot","A Visit to Friends":"Boot","Woodland Runners":"Boot","Protection Racket":"Coin",
+                "Bake Sale":"Coin","Investments":"Coin","Mouse-in-a-Sack":"Sack","Birdy Bindle":"Sack",
+                "Gently Used Knapsack":"Sack","Smuggler\'s Trail":"Sack","Root Tea":"Tea","Foxfolk Steel":"Sword",
+                "Sword":"Sword","Arms Trader":"Sword","Crossbow":"Crossbow","Anvil":"Hammer"}
+
+STONE_NAMES = ['Codebreakers', 'Sappers', 'Better Burrow Bank', 'Stand and Deliver!',
+                'Cobbler', 'Armorers', 'Tax Collector', 'Scouting Party', 'Sappers',
+                'Scouting Party', 'Cobbler', 'Tax Collector', 'Better Burrow Bank',
+                'Stand and Deliver!', 'Brutal Tactics', 'Armorers', 'Codebreakers',
+                'Tax Collector', 'Brutal Tactics', 'Royal Claim', 'Command Warren',
+                'Command Warren']
+#Now build the deck
+
+#Crafting cards
+cards = []
+cards+= [Card('M',(0,1,0,0),"Gain a Boot and 1 VP, then discard.",'Travel Gear')]*1
+cards+= [Card('F',(1,0,0,0),"Gain a Boot and 1 VP, then discard.",'Travel Gear')]*1
 cards+= [Card('R',(0,1,0,0),"Gain a Boot and 1 VP, then discard.","A Visit to Friends")]*1
 cards+= [Card('B',(0,1,0,0),"Gain a Boot and 1 VP, then discard.","Woodland Runners")]*1
 cards+= [Card('F',(0,2,0,0),"Gain a Coin and 3 VP, then discard.","Protection Racket")]*1
@@ -77,19 +96,19 @@ cards+= [Card('M',(1,0,0,0),"Gain a Crossbow and 1 VP, then discard.","Crossbow"
 cards+= [Card('B',(1,0,0,0),"Gain a Crossbow and 1 VP, then discard.","Crossbow")]*1
 cards+= [Card('F',(1,0,0,0),"Gain a Hammer and 2 VP, then disard.","Anvil")]*1
 
+#Ambushes
 cards+= [Card('B',(0,0,0,0),"At start of battle, defender may play to deal two hits, then discard. Cancel if attacker plays matching ambush.","Ambush!")]*2
 cards+= [Card('F',(0,0,0,0),"At start of battle, defender may play to deal two hits, then discard. Cancel if attacker plays matching ambush.","Ambush!")]*1
 cards+= [Card('R',(0,0,0,0),"At start of battle, defender may play to deal two hits, then discard. Cancel if attacker plays matching ambush.","Ambush!")]*1
 cards+= [Card('M',(0,0,0,0),"At start of battle, defender may play to deal two hits, then discard. Cancel if attacker plays matching ambush.","Ambush!")]*1
 
 
-
-cards+= [Card('R',(0,2,0,0),"At start of Evening, may take a Move.","Cobbler")]*2
-
+#Favor cards
 cards+= [Card('F',(3,0,0,0),"Remove all enemy pieces in Fox clearings, then discard.","Favor of the Foxes")]*1
 cards+= [Card('R',(0,3,0,0),"Remove all enemy pieces in Rabbit clearings, then discard.","Favor of the Rabbits")]*1
 cards+= [Card('M',(0,0,3,0),"Remove all enemy pieces in Mouse clearings, then discard.","Favor of the Mice")]*1
 
+#Stone cards, sorted by time
 cards+= [Card('M',(0,0,2,0),"As attacker in battle, you are not affected by ambush cards.","Scouting Party")]*2
 cards+= [Card('B',(1,0,0,0),"In battle, may discard this to ignore all rolled hits taken.","Armorers")]*2
 cards+= [Card('B',(2,0,0,0),"In battle as attacker, may deal an extra hit, but defender scores one point.","Brutal Tactics")]*2
@@ -103,6 +122,8 @@ cards+= [Card('M',(0,0,1,0),"Once in daylight, may look at another players hand.
 cards+= [Card('F',(1,1,1,0),"Once in Daylight, may remove one of your warriors from the map to draw a card.","Tax Collector")]*3
 cards+= [Card('R',(0,2,0,0),"At start of Daylight, may initiate a battle.","Command Warren")]*2
 
+cards+= [Card('R',(0,2,0,0),"At start of Evening, may take a Move.","Cobbler")]*2
+
 #Dominance cards have to be played during daylight by a player with at least 10 points. Can be spent for suit, and are then made available.
 #Also, they only enter the game with three players, so for now they don't exist.
 # cards+= [Card('F',(0,0,0,0),"You win the game if you control three Fox clearings at the start of your Birdsong.","Dominance")]*1
@@ -115,4 +136,7 @@ DECK = Deck(cards)
 DISCARD = Deck([])
 
 if __name__ == '__main__':
-    pass
+    names = []
+    for c in cards:
+        names.append(c.name)
+    print(names)

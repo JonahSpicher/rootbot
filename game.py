@@ -5,19 +5,22 @@ import random
 """
 Things to add:
 - crafting
-    - cards that just do points, items
-    - more complicated cards
+    - Birdsong cards
+    - Daylight cards
+    - Evening cards
+    - Battle cards
 - ambush cards
 
 - Field Hospitals???
 - The draw and discard pile
 
 Known bugs:
-- daylight prints weird
 - One time when I did an action wrong the whole thing crashed it was weird
-- Hired birds not discarding
-- If the second move of a march is illegal, the first one still happens, but doesn't cost an action!
-- Ok it draws too many times whats goin on
+    - Does this count as known?
+
+- Ok it draws  the screen too many times whats goin on
+    - Fixing this would require doing things completely differently at a very basic level. It is
+    not important.
 
 """
 
@@ -74,6 +77,8 @@ class Game:
         CLEARINGS[0].tokens.append('K')
         DECK.shuffle()
         self.marquise.hand = [DECK.draw(), DECK.draw(), DECK.draw()]
+        #For testing
+        self.marquise.hand.append(Card('M',(0,0,3,0),"Remove all enemy pieces in Mouse clearings, then discard.","Favor of the Mice"))
 
 
     def screen_updates(self):
@@ -133,7 +138,7 @@ class Game:
             self.input_ready = False
             if self.marquise.phase == 1:
                 self.marquise.daylight(self.command)
-            elif marquise.phase == 2:
+            elif self.marquise.phase == 2:
                 self.marquise.evening(self.command)
             draw_map(CLEARINGS)
             scrn.blit(self.txt_surface, (50,850))

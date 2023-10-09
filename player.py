@@ -8,12 +8,14 @@ import random
 class CatPlayer:
     def __init__(self, player_num):
         self.hand = []
+        self.played_cards = []
         self.items = []
         self.costs = [0,1,2,3,3,4]
         self.sawmill_points = [0,1,2,3,4,5]
         self.recruiter_points = [0,1,2,3,3,4]
         self.workshop_points = [0,2,2,3,4,5]
         self.workshop_suits = {'F':0, 'R':0, 'M':0}
+        self.craft_avail = {'F':0, 'R':0, 'M':0}
         self.building_nums = {'S':0, 'W':0, 'Re':0}
         self.player_num = player_num #For Rule purposes
 
@@ -44,8 +46,6 @@ class CatPlayer:
         print("Placed %d wood."%total)
         print("Currently have %d points."%self.score)
 
-
-
     def daylight(self, command=None):
         """
         For now, this is going to accept player input. Can be modified later for bots.
@@ -56,6 +56,7 @@ class CatPlayer:
         # print("Command: ", command)
         if self.dstage == 0:
             print("Starting Daylight...")
+            self.craft_avail = self.workshop_suits
             #print(self.hand)
             #print("Setting dstage to 1")
             self.dstage = 1
@@ -315,6 +316,7 @@ class CatPlayer:
                 return 0
             if selected < len(self.hand) and self.hand[selected].suit == 'B':
                 #Successfully played a bird card!
+                DISCARD.cards.append(self.hand[selected])
                 del self.hand[selected] #Discard the bird card, will later go into the discard pile
                 self.max_actions += 1
                 self.dstage = 2
@@ -325,6 +327,10 @@ class CatPlayer:
     def evening(self, command=None):
         #print("EVENING START")
         if self.dstage == 0:
+            for c in self.played_cards:
+                if c.name =='Cobbler':
+                    #Ugh ok finish this later 
+        if self.dstage == 1:
             num_cards = 1 + self.building_nums['Re']//2 #Number of cards to draw
             self.draw(num_cards)
             if len(self.hand) <= 5:
@@ -340,7 +346,7 @@ class CatPlayer:
                     i+=1
                 print('\n')
                 print("Need to discard cards. Select card to discard from above hand.")
-                self.dstage = 1
+                self.dstage = 2
                 return 0
         else: #Should only be possible with a command? I hope so
             try:
@@ -373,16 +379,7 @@ class CatPlayer:
                 self.dstage = 1
                 return 0
 
-
-
-
-
-
     ######################  ACTIONS  ##########################
-
-
-
-
     def battle(self, clearing):
         """
         ACTION
@@ -391,6 +388,7 @@ class CatPlayer:
         Also add ambush, and other possibilities
         """
         c = CLEARINGS[clearing]
+        #Eventually, ambush cards go here, but right now defender cards make no sense
         if (c.cat_count >= 1) and (('Ro' in c.buildings) or (c.bird_count >= 1) ):
             roll1 = random.randint(0,3)
             roll2 = random.randint(0,3) #Eventually might want this to be a thing we can input
@@ -452,31 +450,49 @@ class CatPlayer:
                 c.add_warrior(1,1)
         return True
 
-    def move(self, c1, c2, num):
+    def move_check(self, c1, c2, num):
+        print("Trying to move %d troops"%num)
+        print("Have %d troops available"%CLEARINGS[c1].cat_count)
         if num <= CLEARINGS[c1].cat_count:
             if CLEARINGS[c1].rule == self.player_num or CLEARINGS[c2].rule == self.player_num:
 
                 if c2 in CLEARINGS[c1].connections:
 
-                    CLEARINGS[c1].add_warrior(-1*max(0,num), 1)
-                    CLEARINGS[c2].add_warrior(max(0,num),1)
+                    # CLEARINGS[c1].add_warrior(-1*max(0,num), 1)
+                    # CLEARINGS[c2].add_warrior(max(0,num),1)
                     return True
 
                 else:
                     print("Cannot make move, clearings not connected")
-
             else:
                 print("Cannot make move, rule conditions not met")
         else:
             print("Cannot make move, not enough warriors present")
         return False
 
+    def move(self, c1, c2, num):
+
+        CLEARINGS[c1].add_warrior(-1*max(0,num), 1)
+        CLEARINGS[c2].add_warrior(max(0,num),1)
+        return True
+
     def march(self, m1, m2):
         #ACTION
-        r1 = self.move(*m1)
-        if r1:
-            r2 = self.move(*m2)
-            return r2
+        print(m1,m2)
+        from1, to1, num1 = m1
+        from2, to2, num2 = m2
+        check_num = num2
+        if to1 == from2:
+            print("Doing ghost numbers")
+            check_num -= num1
+        if from1 == from2:
+            print("Splitting the party")
+            check_num += num1
+
+        if self.move_check(*m1) and self.move_check(from2, to2, check_num):
+            self.move(*m1)
+            self.move(*m2)
+            return True
         return False
 
     def build(self, clearing, building):
@@ -508,21 +524,70 @@ class CatPlayer:
         del self.hand[card] #When discard pile is necessary, fix this
         return True
 
-
-
-
     ######################  UTILITIES  ##########################
 
     def craft(self, card):
         """
         Basically just make sure that the cost is covered by workshops and then boom
+        Takes the index of the card in your hand.
         """
         # check that cost is paid
-        print("Oh yes definitely crafting this card:")
-        print(self.hand[card])
-        del self.hand[card]
+        c = self.hand[card]
+        #This line technically is not perfect, but the only card with ? cost is royal claim, which has 0 cost of any other type, so its fine.
+        if c.cost[0] <= self.craft_avail['F'] and c.cost[1] <= self.craft_avail['R'] and c.cost[2] <= self.craft_avail['M'] and c.cost[3] <= sum(self.craft_avail.values()):
+            #Ok then pay the price
+            self.craft_avail['F'] -= c.cost[0]
+            self.craft_avail['R'] -= c.cost[1]
+            self.craft_avail['M'] -= c.cost[2]
+            #TODO: Make royal claim work. Ugh
+            #We can afford to craft this, so what kind of card is it?
+            if c.name in CRAFT_ITEMS.keys(): #Regular points and items card
+                #Ok its an item crafting card
+                self.score += CRAFT_POINTS[c.name]
+                self.items.append(CRAFT_ITEMS[c.name])
+                print("You crafted %s, gaining one %s. You gained %d points, and now have %d."%(c.name,self.items[-1],CRAFT_POINTS[c.name],self.score))
+                DISCARD.cards.append(c)
+                del self.hand[card]
+                return True
+            elif c.name[0:5] == "Favor":
+                print("Uh oh they're in trouble now")
+                code = c.name[-4:]
+                if code == "oxes":
+                    target = 'F'
+                elif code == "Mice":
+                    target = 'M'
+                elif code == "bits":
+                    target = 'R'
+
+                for cl in CLEARINGS:
+                    if cl.suit == target:
+                        cl.bird_count = 0
+                        if 'Ro' in cl.buildings:
+                            cl.buildings.remove('Ro')
+                print("All matching clearings destroyed.")
+                DISCARD.cards.append(c)
+                del self.hand[card]
+                return True
+            elif c.name in STONE_NAMES:
+                #Just need to add to played cards, for later.
+                print("Crafted %s!"%c.name)
+                self.played_cards.append(c)
+                del self.hand[card]
+
+            else:
+                print("Got it just deleting it sorry")
+                print(self.hand[card])
+                DISCARD.cards.append(c)
+                del self.hand[card]
+                return True
+        print("Cannot craft card, not enough workshops.")
+        return False
+
+
+
+
         # if yes, activate card effect and then discard
-        return True
+
 
 
     def is_connected(self, c1, c2, searched=None):
